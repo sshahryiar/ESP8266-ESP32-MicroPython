@@ -2,10 +2,10 @@ from micropython import const
 from machine import Pin, I2C, WDT
 from utime import sleep_ms
 from SSD1306_I2C import OLED1306
-import WiFi_Credentials
 import time
 import network
 import ntptime
+import WiFi_Credentials 
 
 
 time_zone = const(+6)
@@ -14,8 +14,9 @@ sync_hour = const(3)
 ip = 0
 LED_state = True
 second_previous = 0
+reset_counter = 10
 sync_success = False
-connection_successful = False
+connection_status = False
 
 
 LED = Pin(2, Pin.OUT)
@@ -26,38 +27,36 @@ wifi_sta = network.WLAN(network.STA_IF)
 
 
 def connect_and_check_wifi_status():
-    global ip, connection_successful, LED_state
+    global ip, connection_status, LED_state
     
     if(wifi_sta.isconnected()):
-        if(connection_successful == False):
+        if(connection_status == False):
             print("Connected to WiFi Network with SSID: " + WiFi_Credentials.SSID + " and with IP address: " + wifi_sta.ifconfig()[0] + "\r\n")
             ip = wifi_sta.ifconfig()[0]
-            connection_successful = True
+            connection_status = True
             
     else:
         wifi_sta.active(True)
         wifi_sta.connect(WiFi_Credentials.SSID, WiFi_Credentials.password)
-        sleep_ms(400)
+        wdt.feed()
+        sleep_ms(600)
         print("Network Unavailable!" + "\r\n")
         LED_state ^= 0x01
         LED.value(LED_state)
+        wdt.feed()
         sleep_ms(90)
-        connection_successful = False
-        
-    wdt.feed()
-    
-    return connection_successful
+        connection_status = False
 
     
 def sync_ntp():
     try:
         ntptime.settime()
         print("\r\n" + "RTC Synchronized." + "\r\n")
-        oled.text("Sync", 90, 46, oled.WHITE)
+        oled.text("=", 120, 46, oled.WHITE)
         return True
     except OSError:
         print("\r\n" + 'NTP server: connection timeout...' + "\r\n")
-        oled.text("Error", 80, 46, oled.WHITE)
+        oled.text("!", 120, 46, oled.WHITE)
         return False
 
 
@@ -65,7 +64,7 @@ while(True):
     try:     
         oled.fill(oled.BLACK)
         
-        network_status = connect_and_check_wifi_status()
+        connect_and_check_wifi_status()
             
         UTC_OFFSET = (time_zone * 3600)
         rtc_value = time.localtime(time.time() + UTC_OFFSET)
@@ -77,24 +76,29 @@ while(True):
         minute = rtc_value[4]
         second = rtc_value[5]
         
-        if(network_status == True):
+        if(connection_status == True):
             if(sync_success == False):
-                if(second == 0):
+                if((second % 30) == 0):
                     sync_success = sync_ntp()
                     
             else:
                 if(((hour % sync_hour) == 0) and (minute == 0) and (second == 0)):
                     sync_success = sync_ntp()
         
+        else:
+            
+            if(reset_counter == 0):
+                machine.reset()
+        
         wdt.feed()
         
         if(second != second_previous):
-                        
             oled.text("ESP RTC NTP Time", 0, 0, oled.WHITE)
         
-            if(network_status == False):
+            if(connection_status == False):
                 oled.text("Network Error!", 0, 14, oled.WHITE)
                 oled.text("000.000.000.000", 0, 28, oled.WHITE)
+                reset_counter -= 1
                 
             else:
                 oled.text(("WiFi: " + WiFi_Credentials.SSID), 0, 14, oled.WHITE)
@@ -116,3 +120,4 @@ while(True):
         print('Error! Rebooting....' + "\r\n")
         oled.text("Error", 80, 46, oled.WHITE)
         oled.show()
+        
