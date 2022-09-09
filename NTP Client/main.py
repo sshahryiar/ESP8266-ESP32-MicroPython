@@ -39,7 +39,7 @@ def connect_and_check_wifi_status():
         wifi_sta.connect(WiFi_Credentials.SSID, WiFi_Credentials.password)
         sleep_ms(400)
         print("Network Unavailable!" + "\r\n")
-        LED_state = ~LED_state
+        LED_state ^= 0x01
         LED.value(LED_state)
         sleep_ms(90)
         connection_successful = False
@@ -106,9 +106,9 @@ while(True):
             print("Time: " + str("%02u:" %hour) + str("%02u:" %minute) + str("%02u" %second)
                   + "   Date: " + str("%02u/" %date) + str("%02u/" %month) + str("%4u" %year))
             
-            LED_state = ~LED_state
-            LED.value(LED_state)
+            LED_state ^= 0x01
             oled.show()
+            LED.value(LED_state)
         
         second_previous = second
         
