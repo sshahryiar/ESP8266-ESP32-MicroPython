@@ -2,7 +2,7 @@ from machine import Pin, I2C, WDT
 from utime import sleep_ms
 from SSD1306_I2C import OLED1306
 from iss_location_api import iss_location
-from unix_time import utc
+from unix_time import unix
 import network
 import framebuf
 import gc
@@ -65,7 +65,7 @@ i2c = I2C(0, sda = Pin(21), scl = Pin(22), freq = 250000)
 oled = OLED1306(i2c)
 wifi_sta = network.WLAN(network.STA_IF)
 iss = iss_location()
-rtcc = utc(+6)
+rtcc = unix(+6)
 
 
 def map_value(v, x_min, x_max, y_min, y_max):
@@ -136,7 +136,7 @@ while(True):
         else:
             utc, lat, lon = iss.fetch_data()
             
-            year, month, date, hour, minute, second = rtcc.utc_to_date_time(utc)
+            year, month, date, hour, minute, second = rtcc.unix_to_date_time(utc)
             print("Time: " + str("%02u" %hour) + ":" + str("%02u" %minute) + ":" + str("%02u" %second)
                   + "  Date: " + str("%02u" %date) + "/" + str("%02u" %month) + "/" + str("%4u" %year))
             print("Lat: " + lat + "  Lon: " + lon + "\r\n")
@@ -172,4 +172,3 @@ while(True):
     
     except KeyboardInterrupt:
         pass
-

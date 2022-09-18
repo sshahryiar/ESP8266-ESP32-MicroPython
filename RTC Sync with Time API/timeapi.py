@@ -8,7 +8,7 @@ class timeapi():
         self.longitude = lon
         
         
-    def coonect_url(self):
+    def connect_url(self):
         url = "https://timeapi.io/api/Time/current/coordinate?latitude=" + str("%3.2f" %self.latitude) + "&longitude=" + str("%3.2f" %self.longitude)
         return url
     
@@ -16,7 +16,7 @@ class timeapi():
     def fetch_data(self):
         return_data = []
         
-        fetched_data = requests.get(self.coonect_url())
+        fetched_data = requests.get(self.connect_url())
              
         return_data.append(fetched_data.json().get('year'))              # 0
         return_data.append(fetched_data.json().get('month'))             # 1
