@@ -99,7 +99,7 @@ while(True):
                 time_fetch_flag = True
                 time_sync_status = True
         
-        if(time_sync_status == True):
+        else:
             if(((hour % sync_hour) == 0) and (minute == 0) and (second == 0)):
                 time_fetch_flag = True
                 
