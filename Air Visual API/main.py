@@ -65,7 +65,7 @@ def map_value(v, x_min, x_max, y_min, y_max):
     return (y_min + (((y_max - y_min)/(x_max - x_min)) * (v - x_min)))
 
 
-def contrain(value, min_value, max_value):
+def constrain(value, min_value, max_value):
     if(value > max_value):
         return max_value
     
@@ -179,7 +179,7 @@ def aqi_graphics(value):
         tft.text(str(value_l[j]), (i - 2), 94, tft.BLACK)
         tft.text(str(value_h[j]), (i - 2), 108, tft.BLACK)
         
-    temp = contrain(value, 0, 500)
+    temp = constrain(value, 0, 500)
     temp = int(map_value(temp, 0, 500, 12, 148))
     tft.line(temp, 85, (temp - 4), 81, tft.WHITE)
     tft.line(temp, 85, (temp + 4), 81, tft.WHITE)
